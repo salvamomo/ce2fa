@@ -1,5 +1,5 @@
 {
-	"name" : "codeenigma/simplesamlphp-2fa-check",
+	"name" : "codeenigma/simplesamlphp-module-2fa-check",
 	"description" : "A SimpleSAMLphp module that checks if the authenticated user is considered a Group Admin or a Superuser in LDAP.",
 	"type" : "simplesamlphp-module",
 	"keywords" : [
