@@ -9,6 +9,8 @@
 class sspmod_simplesamlphp_2fa_check_Auth_Process_LdapUser2faCheck extends sspmod_ldap_Auth_Process_BaseFilter
 {
 
+	const AdminGroupSuffix = 'Admins';
+
 	/**
 	 * Initialize this filter.
 	 *
@@ -41,8 +43,8 @@ class sspmod_simplesamlphp_2fa_check_Auth_Process_LdapUser2faCheck extends sspmo
 
 		// Get username from request.
 		$username = $attributes['uid'];
-		if ($this->userRequires2FA($username, $attributes)) {
-			$attributes[self::class] = ['2fa_required' => true];
+		if ($this->userRequires2FA($username, $attributes) == false) {
+			$attributes['sspmod_linotp2_Auth_Process_OTP'] = ['skip_check' => true];
 		}
 
 		return;
@@ -91,9 +93,35 @@ class sspmod_simplesamlphp_2fa_check_Auth_Process_LdapUser2faCheck extends sspmo
 	 * 	true if the user is considered a group admin, false otherwise.
 	 */
 	private function userIsGroupAdmin($username) {
-		// @todo: get Groups where the user is present.
-		// See if he's in an admin group.
-		return false;
+		$user_is_group_admin = false;
+
+		/* @var \SimpleSAML_Auth_LDAP $ldap */
+		$ldap = $this->getLdap();
+
+		$filter = '(&(objectClass=posixGroup)(memberUid=' . $username . '))';
+		try {
+			$ldap_groups = $ldap->searchformultiple('ou=Groups,dc=codeenigma,dc=com', $filter, array('cn'));
+		}
+		catch (\Exception $e) {
+			// If groups can't be retrieved, assumed user is not group admin.
+			return false;
+		}
+
+		$user_groups = array();
+		foreach ($ldap_groups as $key => $group_info) {
+			if (is_int($key) && isset($group_info["cn"][0])) {
+				$user_groups[] = $group_info["cn"][0];
+			}
+		}
+
+		foreach ($user_groups as $group) {
+			if (in_array($group . self::AdminGroupSuffix, $user_groups)) {
+				$user_is_group_admin = true;
+				break;
+			}
+		}
+
+		return $user_is_group_admin;
 	}
 
 }
