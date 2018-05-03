@@ -44,7 +44,7 @@ class sspmod_simplesamlphp_2fa_check_Auth_Process_LdapUser2faCheck extends sspmo
 		// Get username from request.
 		$username = $attributes['uid'];
 		if ($this->userRequires2FA($username, $attributes) == false) {
-			$attributes['sspmod_linotp2_Auth_Process_OTP'] = ['skip_check' => true];
+			$request['sspmod_linotp2_Auth_Process_OTP'] = ['skip_check' => true];
 		}
 
 		return;
